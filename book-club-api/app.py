@@ -1,11 +1,9 @@
-from typing import Union
 from enum import Enum
 from fastapi import FastAPI
 from sqlmodel import SQLModel, create_engine
 from dotenv import load_dotenv
 import os
-import models
-
+from .routers import users
 
 load_dotenv()
 
@@ -21,10 +19,7 @@ SQLModel.metadata.create_all(db)
 async def read_root():
     return {"message": "Hello World!"}
 
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+app.include_router(users.router)
 
 
 class ModelName(str, Enum):
