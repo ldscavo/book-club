@@ -7,4 +7,4 @@ class User(SQLModel, table=True):
     email: str
     password: str
     created_at: datetime = Field(default=datetime.now())
-    update_at: datetime
+    update_at: datetime = Field(default=datetime.now())
