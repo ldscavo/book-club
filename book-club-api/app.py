@@ -1,18 +1,14 @@
 from enum import Enum
 from fastapi import FastAPI
-from sqlmodel import SQLModel, create_engine
 from dotenv import load_dotenv
-import os
-from .routers import users
+from database import create_tables
+from routers import users
 
 load_dotenv()
 
+create_tables()
 
 app = FastAPI()
-
-
-db = create_engine(os.environ.get('DATABASE_URL'))
-SQLModel.metadata.create_all(db)
 
 
 @app.get("/")
