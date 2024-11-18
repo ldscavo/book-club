@@ -16,11 +16,11 @@ class RegistrationModel(BaseModel):
 
 
 @router.post("/register")
-async def register(reg: RegistrationModel, resp: Response):
+async def register(reg: RegistrationModel, resp: Response) -> User | None:
     with Session(db_engine) as session:
         if reg.password != reg.password_confirm:
             resp.status_code = status.HTTP_400_BAD_REQUEST
-            return "NO"
+            return None
 
         existing_user = session.exec(
             select(User).where(User.email == reg.email)
@@ -28,7 +28,7 @@ async def register(reg: RegistrationModel, resp: Response):
 
         if existing_user is not None:
             resp.status_code = status.HTTP_400_BAD_REQUEST
-            return "NO"
+            return None
 
         user = User(email=reg.email)
         session.add(user)
