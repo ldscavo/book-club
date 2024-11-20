@@ -3,7 +3,9 @@ from sqlmodel import Session, select
 from fastapi import HTTPException
 from database import db_engine
 import bcrypt
-from models import User
+import jwt
+from models import User, Token
+import settings
 
 
 class RegistrationModel(BaseModel):
@@ -48,7 +50,7 @@ def register_user(reg: RegistrationModel) -> User:
         return user
 
 
-def login_user(login: LoginModel) -> User:
+def login_user(login: LoginModel) -> Token:
     with Session(db_engine) as session:
         user = session.exec(
             select(User).where(User.email == login.email)
@@ -71,4 +73,15 @@ def login_user(login: LoginModel) -> User:
                 detail="Invalid password"
             )
 
-        return user
+        jwt_value = jwt.encode(
+            {"user_id": user.id},
+            settings.SECRET,
+            algorithm="HS256"
+        )
+
+        token = Token(user_id=user.id, token=jwt_value)
+        session.add(token)
+        session.commit()
+
+        session.refresh(token)
+        return token
