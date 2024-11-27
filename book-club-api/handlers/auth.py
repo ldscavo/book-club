@@ -5,9 +5,8 @@ from fastapi import HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from database import db_engine
 import bcrypt
-import jwt
 from models import User, Token
-import settings
+from datetime import datetime
 
 
 class RegistrationModel(BaseModel):
@@ -30,26 +29,19 @@ unauthorize_exception = HTTPException(
 )
 
 
-def parse_jwt(token: str):
-    try:
-        return jwt.decode(token, settings.SECRET, algorithms="HS256")
-    except Exception:
-        raise unauthorize_exception
-
-
 def get_current_user(token: Annotated[str, Depends(header_scheme)]):
     with Session(db_engine) as session:
-        payload = parse_jwt(token)
-        user_id: int = payload.get("user_id")
-
-        user = session.exec(
-            select(User).where(User.id == user_id)
+        token = session.exec(
+            select(Token).where(Token.token == token)
         ).one_or_none()
 
-        if user is None:
+        if token is None:
             raise unauthorize_exception
 
-        return user
+        if token.expires_at < datetime.now():
+            raise unauthorize_exception
+
+        return token.user
 
 
 def register_user(reg: RegistrationModel) -> User:
@@ -71,9 +63,14 @@ def register_user(reg: RegistrationModel) -> User:
         user = User(email=reg.email, password=password_hash)
         session.add(user)
         session.commit()
-
         session.refresh(user)
-        return user
+
+        token = Token(user_id=user.id)
+        session.add(token)
+        session.commit()
+        session.refresh(token)
+
+        return token
 
 
 def login_user(login: LoginModel) -> Token:
@@ -89,29 +86,21 @@ def login_user(login: LoginModel) -> Token:
         if not is_valid_pw:
             raise HTTPException(status_code=422, detail="Invalid password")
 
-        jwt_value = jwt.encode({"user_id": user.id},
-                               settings.SECRET, algorithm="HS256")
+        token = Token(user_id=user.id)
+        session.add(token)
+        session.commit()
 
-        token = Token(user_id=user.id, token=jwt_value)
-        # session.add(token)
-        # session.commit()
-        #
-        # session.refresh(token)
+        session.refresh(token)
         return token
 
 
 def validate_user_token(token: str) -> bool:
     with Session(db_engine) as session:
-        user_id = jwt.decode(
-            token,
-            settings.SECRET,
-            algorithm="HS256"
-        )["user_id"]
+        token = session.exec(
+            select(Token).where(Token.token == token)
+        ).one_or_none()
 
-        user = session.exec(select(Token).where(
-            Token.user_id == user_id and Token.token == token)).one_or_none()
-
-        if user is None:
+        if token is None:
             return False
 
         return True

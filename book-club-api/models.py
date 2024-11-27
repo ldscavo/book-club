@@ -1,6 +1,7 @@
 from sqlmodel import Field, SQLModel, AutoString, Relationship
 from pydantic import EmailStr
-from datetime import datetime
+from datetime import datetime, timedelta
+import secrets
 
 
 class User(SQLModel, table=True):
@@ -15,7 +16,8 @@ class User(SQLModel, table=True):
 
 class Token(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    token: str = Field(unique=True)
+    token: str = Field(unique=True, default=secrets.token_hex(16))
+    expires_at: datetime = Field(default=datetime.now() + timedelta(days=7))
 
     user_id: int = Field(foreign_key="user.id")
     user: User = Relationship()

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Response
 from models import User, Token
 from handlers.auth import (
-    register_user, RegistrationModel, login_user,
-    LoginModel)
+    register_user, login_user, RegistrationModel, LoginModel
+)
 
 
 router = APIRouter()
