@@ -30,9 +30,16 @@ unauthorize_exception = HTTPException(
 )
 
 
+def parse_jwt(token: str):
+    try:
+        return jwt.decode(token, settings.SECRET, algorithms="HS256")
+    except Exception:
+        raise unauthorize_exception
+
+
 def get_current_user(token: Annotated[str, Depends(header_scheme)]):
     with Session(db_engine) as session:
-        payload = jwt.decode(token, settings.SECRET, algorithms="HS256")
+        payload = parse_jwt(token)
         user_id: int = payload.get("user_id")
 
         user = session.exec(
