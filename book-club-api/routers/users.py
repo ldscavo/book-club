@@ -7,5 +7,5 @@ router = APIRouter(prefix="/users")
 
 
 @router.get("/me")
-def me(user: User = Depends(get_current_user)):
+def me(user: User = Depends(get_current_user)) -> User:
     return user
