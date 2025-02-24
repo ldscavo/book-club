@@ -59,9 +59,26 @@ class Club(ClubBase, table=True):
     members: list["User"] = Relationship(back_populates="clubs_joined",
                                          link_model=ClubMember)
 
+    invitations: list["Invitation"] = Relationship()
+
     created_at: datetime = Field(default=datetime.now(), exclude=True)
     update_at: datetime = Field(default=datetime.now(), exclude=True)
 
 
 class ClubPublic(ClubBase):
     id: int
+    members: list["UserPublic"]
+    invitations: list["Invitation"]
+
+
+class InvitationBase(SQLModel):
+    club_id: int | None = Field(default=None,
+                                foreign_key="club.id",
+                                primary_key=True)
+
+    email: EmailStr = Field(primary_key=True,
+                            sa_type=AutoString)
+
+
+class Invitation(InvitationBase, table=True):
+    invited_at: datetime = Field(default=datetime.now(), exclude=True)

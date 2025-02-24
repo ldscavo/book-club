@@ -32,18 +32,18 @@ unauthorize_exception = HTTPException(
 def get_current_user(token: Annotated[str, Depends(header_scheme)]):
     with Session(db_engine) as session:
         query = select(Token).where(Token.token == token)
-        token = session.exec(query).one_or_none()
+        user_token = session.exec(query).one_or_none()
 
-        if token is None:
+        if user_token is None:
             raise unauthorize_exception
 
-        if token.expires_at < datetime.now():
+        if user_token.expires_at < datetime.now():
             # Token has expired, remove from database
-            session.delete(token)
+            session.delete(user_token)
             session.commit()
             raise unauthorize_exception
 
-        return token.user
+        return user_token.user
 
 
 def register_user(reg: RegistrationModel, session: Session) -> User:
@@ -65,19 +65,23 @@ def register_user(reg: RegistrationModel, session: Session) -> User:
     session.commit()
     session.refresh(user)
 
+    if user.id is None:
+        raise HTTPException(status_code=422,
+                            detail="User with that email already exists!")
+
     token = Token(user_id=user.id)
     session.add(token)
     session.commit()
     session.refresh(token)
 
-    return token
+    return user
 
 
 def login_user(login: LoginModel, session: Session) -> Token:
     query = select(User).where(User.email == login.email)
     user = session.exec(query).one_or_none()
 
-    if user is None:
+    if user is None or user.id is None:
         raise HTTPException(status_code=422, detail="Invalid email")
     print(login.password)
     is_valid_pw = bcrypt.checkpw(to_bytes(login.password), user.password)

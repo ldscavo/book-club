@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from models import User, Token
 from database import get_session
-from handlers.auth import (
+from auth.handler import (
     register_user, login_user, RegistrationModel, LoginModel
 )
 

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from database import create_tables
-from routers import users, auth, clubs
-
+import auth.routes as auth_routes
+import users.routes as user_routes
+import clubs.routes as club_routes
 
 app = FastAPI()
 
@@ -11,6 +12,6 @@ def on_startup():
     create_tables()
 
 
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(clubs.router)
+app.include_router(auth_routes.router)
+app.include_router(user_routes.router)
+app.include_router(club_routes.router)
