@@ -92,8 +92,8 @@ def login_user(login: LoginModel, session: Session) -> Token:
     token = Token(user_id=user.id)
     session.add(token)
     session.commit()
-
     session.refresh(token)
+
     return token
 
 
