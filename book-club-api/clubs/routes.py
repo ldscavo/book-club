@@ -9,8 +9,7 @@ from clubs.handler import (
     create_club,
     UserClubs,
     NewClubModel,
-    update_club,
-    invite_to_club
+    update_club
 )
 
 router = APIRouter(prefix="/clubs")
@@ -45,10 +44,3 @@ def modify_club(*, session: Session = Depends(get_session),
                       members=[],
                       invitations=[])
     return update_club(club, session)
-
-
-@router.post("/{id}/invitations")
-def invite(*, session: Session = Depends(get_session),
-           id: int,
-           emails: list[EmailStr]) -> Club:
-    return invite_to_club(id, emails, session)

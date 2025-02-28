@@ -1,7 +1,7 @@
 from fastapi import HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from database import Session
-from models import User, Club, ClubPublic, Invitation
+from models import User, Club, ClubPublic
 
 
 class UserClubs(BaseModel):
@@ -61,18 +61,3 @@ def update_club(updated_club: ClubPublic,
     session.refresh(club)
     return club
 
-def invite_to_club(club_id: int,
-                   emails: list[EmailStr],
-                   session: Session) -> Club:
-    club = get_club(club_id, session)
-
-    if club is None:
-        raise HTTPException(404, "Could not find club")
-
-    for email in emails:
-        club.invitations.append(Invitation(email=email))
-
-    session.commit()
-    session.refresh(club)
-
-    return club
