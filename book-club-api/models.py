@@ -71,7 +71,7 @@ class ClubPublic(ClubBase):
     invitations: list["Invitation"]
 
 
-class InvitationBase(SQLModel):
+class Invitation(SQLModel, table=True):
     club_id: int | None = Field(default=None,
                                 foreign_key="club.id",
                                 primary_key=True)
@@ -79,6 +79,4 @@ class InvitationBase(SQLModel):
     email: EmailStr = Field(primary_key=True,
                             sa_type=AutoString)
 
-
-class Invitation(InvitationBase, table=True):
     invited_at: datetime = Field(default=datetime.now(), exclude=True)
