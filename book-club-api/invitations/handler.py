@@ -5,11 +5,16 @@ from clubs.handler import get_club
 from database import Session
 from models import Club, Invitation
 
-def get_invitations(club_id: int,
+def get_invitations_by_club(club_id: int,
                     session: Session) -> list[Invitation]:
     club = get_club(club_id, session)
 
     return club.invitations
+
+def get_invitations_by_email(email: EmailStr,
+                             session: Session) -> list[Invitation]:
+    query = select(Invitation).where(Invitation.email == email)
+    return list(session.exec(query).all())
 
 def invite_to_club(club_id: int,
                    emails: list[EmailStr],
